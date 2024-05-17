@@ -13,10 +13,4 @@ class Cita(BaseModel):
     paciente_id: int
     date: str
 
-class User(BaseModel):
-    username: str
-    password: str
 
-class Token(BaseModel):
-    access_token: str
-    token_type: str

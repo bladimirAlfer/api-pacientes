@@ -1,41 +1,62 @@
 from fastapi import FastAPI, HTTPException
 import mysql.connector
 import schemas
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi import APIRouter
 
 app = FastAPI()
+router = APIRouter()
 
+# Configuración de CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://ln-proyecto-1685771317.us-east-1.elb.amazonaws.com:8014"],  # Ajusta esto al host de tu frontend
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Detalles de la base de datos
 host_name = "3.219.70.47"
 port_number = "8005"
 user_name = "root"
 password_db = "utec"
-database_name = "your_database"
+database_name = "proyecto"
 schema_name = "pacientes_schema"
 
-@app.get("/pacientes")
+@app.get("/")
+def health_check():
+    return {"status": "ok"}
+
+# Definición de rutas para el router
+@router.get("/", tags=["Pacientes"])
 def get_pacientes():
-    mydb = mysql.connector.connect(host=host_name, port=port_number, user=user_name, password=password_db, database=database_name)
+    mydb = mysql.connector.connect(
+        host=host_name, port=port_number, user=user_name, password=password_db, database=database_name)
     cursor = mydb.cursor()
     cursor.execute(f"USE {schema_name}")
     cursor.execute("SELECT * FROM pacientes")
     result = cursor.fetchall()
     mydb.close()
-    return {"pacientes": result}
+    return result
 
-@app.get("/pacientes/{id}")
+@router.get("/{id}", tags=["Pacientes"])
 def get_paciente(id: int):
-    mydb = mysql.connector.connect(host=host_name, port=port_number, user=user_name, password=password_db, database=database_name)
+    mydb = mysql.connector.connect(
+        host=host_name, port=port_number, user=user_name, password=password_db, database=database_name)
     cursor = mydb.cursor()
     cursor.execute(f"USE {schema_name}")
     cursor.execute(f"SELECT * FROM pacientes WHERE id = {id}")
     result = cursor.fetchone()
     mydb.close()
     if result:
-        return {"paciente": result}
+        return result
     raise HTTPException(status_code=404, detail="Paciente not found")
 
-@app.post("/pacientes")
+@router.post("/", tags=["Pacientes"])
 def add_paciente(item: schemas.Paciente):
-    mydb = mysql.connector.connect(host=host_name, port=port_number, user=user_name, password=password_db, database=database_name)
+    mydb = mysql.connector.connect(
+        host=host_name, port=port_number, user=user_name, password=password_db, database=database_name)
     cursor = mydb.cursor()
     cursor.execute(f"USE {schema_name}")
     sql = "INSERT INTO pacientes (name, age) VALUES (%s, %s)"
@@ -45,9 +66,10 @@ def add_paciente(item: schemas.Paciente):
     mydb.close()
     return {"message": "Paciente added successfully"}
 
-@app.put("/pacientes/{id}")
+@router.put("/{id}", tags=["Pacientes"])
 def update_paciente(id: int, item: schemas.Paciente):
-    mydb = mysql.connector.connect(host=host_name, port=port_number, user=user_name, password=password_db, database=database_name)
+    mydb = mysql.connector.connect(
+        host=host_name, port=port_number, user=user_name, password=password_db, database=database_name)
     cursor = mydb.cursor()
     cursor.execute(f"USE {schema_name}")
     sql = "UPDATE pacientes SET name=%s, age=%s WHERE id=%s"
@@ -57,12 +79,16 @@ def update_paciente(id: int, item: schemas.Paciente):
     mydb.close()
     return {"message": "Paciente updated successfully"}
 
-@app.delete("/pacientes/{id}")
+@router.delete("/{id}", tags=["Pacientes"])
 def delete_paciente(id: int):
-    mydb = mysql.connector.connect(host=host_name, port=port_number, user=user_name, password=password_db, database=database_name)
+    mydb = mysql.connector.connect(
+        host=host_name, port=port_number, user=user_name, password=password_db, database=database_name)
     cursor = mydb.cursor()
     cursor.execute(f"USE {schema_name}")
     cursor.execute(f"DELETE FROM pacientes WHERE id = {id}")
     mydb.commit()
     mydb.close()
     return {"message": "Paciente deleted successfully"}
+
+# Añadir el router al app
+app.include_router(router, prefix="/pacientes")  # Importante incluir el router con el prefijo correcto
