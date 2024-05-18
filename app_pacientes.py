@@ -9,7 +9,7 @@ router = APIRouter()
 
 # Configuración de CORS
 origins = [
-    "http://52.72.247.76:8000",
+    "http://44.221.179.254:8000",
 ]
 
 app.add_middleware(
