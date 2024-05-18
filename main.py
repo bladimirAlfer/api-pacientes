@@ -8,7 +8,7 @@ from app_pacientes import router as pacientes_router
 app = FastAPI()
 
 origins = [
-    "http://44.221.179.254:8000",  # Asegúrate de incluir aquí todos los dominios que utilizarán tu API
+    "http://3.210.43.14:8000",  # Asegúrate de incluir aquí todos los dominios que utilizarán tu API
 ]
 app.add_middleware(
     CORSMiddleware,
